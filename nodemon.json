@@ -1,0 +1,7 @@
+{
+  "verbose": true,
+  "ignore": [".git/*", "node_modules/*"], 
+  "execMap": {
+    "js": "node --harmony"
+  }
+}

@@ -1,0 +1,95 @@
+<!doctype html>
+<html>
+<head>
+  <title>VK chat application</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-5">
+        <div class="panel-body">
+          <ul class="chat">
+          <% for (var i=recent_messages.length-1; i>=0; i--) {  %>
+          <li class="left clearfix">
+            <img src="<%= recent_messages[i].photo_50 %>" alt="User Avatar">
+            <strong class="pull-right"><%= recent_messages[i].username %><br>
+            <small><%= moment(recent_messages[i].date).calendar() %></small></strong>
+            <p><%= recent_messages[i].message %></p>
+          </li>
+          <% } %>
+          </ul>
+        </div>
+        <div class="panel-footer">
+          <div class="input-group">
+            <input id="btn-input" type="text" class="form-control input-sm" placeholder="Type your message here..." />
+            <span class="input-group-btn">
+              <button class="btn btn-warning btn-sm" id="btn-chat">Send</button>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+  <script src="http://vk.com/js/api/xd_connection.js?2"></script>
+  <script src="/js/moment.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+  var socket = io();
+
+  $(function(){
+    VK.init(function() {
+
+      socket.on('new message', function (data) {
+        addChatMessage(data);
+      });
+
+      function addChatMessage(data) {
+        if (!data.date){
+          data.date = Date.now();
+        }
+        var $usernameDiv = $('<strong class="pull-right">')
+          .text(data.username)
+          .append($('<br>'))
+          .append($('<small>').text(moment(data.date).calendar()));
+        var $messageBodyDiv = $('<p>').text(data.message);
+        var $img = $('<img src="'+data.photo_50+'" alt="User Avatar" />');
+        var $messageDiv = $('<li class="left clearfix">').append($img,$usernameDiv,$messageBodyDiv);
+        $('.chat').append($messageDiv);
+      }
+
+      function chatMessage () {
+        var message = $('#btn-input').val();
+        VK.api('users.get',{user_ids: <%= uid %>, fields: 'photo_50', test_mode: 1}, function(data) {
+          $('#btn-input').val('');
+          var msg = {
+            uid: <%= uid %>,
+            username: data.response[0].first_name + " " + data.response[0].last_name,
+            message: message,
+            photo_50: data.response[0].photo_50
+          };
+          addChatMessage(msg);
+          socket.emit('new message', msg);
+        });
+      }
+
+      $("#btn-chat").click(function(event){
+        event.preventDefault();
+        chatMessage();
+      })
+
+      $("#btn-input").keyup(function(event){
+        if (event.keyCode === 13) {
+          chatMessage();
+        }
+      })
+
+    });
+  })
+</script>
+</body>
+</html>
