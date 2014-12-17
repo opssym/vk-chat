@@ -11,7 +11,7 @@ var client = redis.createClient();
 var VK = require('vkapi');
 var vk = new VK({
   'appID'     : 4684440,
-  'appSecret' : 'oRHPwA3Xvv0lWqLvaSfI',
+  'appSecret' : '',
   'mode'      : 'sig',
   'version'   : '5.27',
   'language'  : 'en'
